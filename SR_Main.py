@@ -9,9 +9,8 @@ def speech():
 
     with sr.Microphone() as source:  # This enables the microphone to be used.
         r.adjust_for_ambient_noise(source)
-        timelimit = input(int("How long will you be speaking for: "))
         print("Speak Now: ")
-        audio = r.listen(source, phrase_time_limit=timelimit)  # Listening to the audio source and saving it under the variable source.
+        audio = r.listen(source)  # Listening to the audio source and saving it under the variable source.
         try:  # Used to verify that the audio is clear
             dictation = r.recognize_google(audio)
             return dictation
@@ -41,7 +40,7 @@ def date():
     print("Note: All temperatures are in Celsius")
     for forecast in forecasts:
         print("On " + forecast.date + ", in " + user_location + " the forecast calls for " + forecast.text +
-              ". The high will be " + forecast.high + ". The low will be " + forecast.low + ".")
+              ". The high will be " + forecast.high + "\u00b0. The low will be " + forecast.low + "\u00b0.")
 
 
 def spelling():
@@ -57,32 +56,41 @@ def restart():
         exit()
 
 
-
 def menu():
-    selection = input("Options:\n"
-                      "A) Message Recorder\n"
-                      "B) Spelling Bee\n"
-                      "C) Bing Search\n"
-                      "D) Time of Day and Weather\n"
-                      "Your Choice: ").upper()
-    if selection == "A":
+    print("Options:\n"
+          "1) Message Recorder\n"
+          "2) Spelling Bee\n"
+          "3) Google Search\n"
+          "4) Time of Day and Weather\n"
+          "Please Dictate Your Choice: ")
+    time.sleep(2)
+    selection = (speech())
+    if len(selection) > 1:
+        print("Try that again")
+        time.sleep(0.5)
+        menu()
+    if selection == "1":
+        time.sleep(0.5)
+        print("Launching Message Recorder")
         message_recorder()
-    elif selection == "B":
+    elif selection == "2":
+        time.sleep(0.5)
+        print("Launching Spelling Bee")
         spelling()
-    elif selection == "C":
+    elif selection == "3":
+        time.sleep(0.5)
+        print("Launching Google Search")
         search()
-    elif selection == "D":
+    elif selection == "4":
+        time.sleep(0.5)
+        print("Launching Date and Weather")
         date()
-    else:
-        print("You selected an invalid input.")
-        restart()
 
 
 menu()
 
 # COULD BE USED
-
+# NEED TO DIFFERENTIATE BETWEEN TYPED AND DICTATED INPUTS
+# Learn how to change languages
 # x = k.wait('esc')
 # k.wait(hotkey=None, suppress=False, trigger_on_release=False)
-# Learn how to change languages
-# Spelling Bee
