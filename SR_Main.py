@@ -6,6 +6,7 @@ import pyttsx3  # Allows for text-to-speech to be used within my code.
 from translate import Translator  # Used in the translate function.
 import requests  # Used in gathering JSON data from the OpenWeatherMap API.
 import datetime  # Used in converting unix time.
+import os.path  # Lets me search for existing txt files.
 
 
 def speech():
@@ -76,104 +77,31 @@ def time_converter(time_entered):
     '''
 
 
-def date():
-    localtime = time.asctime(time.localtime(time.time()))  # Using the time function to find the date and local time.
-    print("Today's Date and Your Local Time:\n" + localtime)  # Printing the above variable.
-    try:  # Placed within a try to defend against incorrect city inputs.
-        print("Enter City Name: ")
-        city_name = speech()  # Calling upon the speech function for this input.
-        url = "https://api.openweathermap.org/data/2.5/weather?appid=9eae8652756b8c816d040731d8a607d7&q=" + city_name
-        json_data = requests.get(url).json()
-        forecast = json_data['weather'][0]['description']  # Accessing the first dictionary within the list(In the API)
-        low_temp = json_data['main']['temp_min']
-        celsius_low = low_temp - 273.15
-        high_temp = json_data['main']['temp_max']
-        celsius_high = high_temp - 273.15
-        current_temp = json_data['main']['temp']
-        celsius_current = current_temp - 273.15
-        wind_speed = json_data['wind']['speed']
-        sunrise_time = json_data['sys']['sunrise']
-        sunset_time = json_data['sys']['sunset']
-        sunrise_final = time_converter(sunrise_time)
-        sunset_final = time_converter(sunset_time)
-        print("Today's Forecast:\n"
-              "The forecast is currently " + forecast + ".\n"
-              "The temperature is currently " + str(celsius_current) + "\u00b0.\n" 
-              "The high temperature is " + str(celsius_high) + "\u00b0.\n"
-              "The low temperature is " + str(celsius_low) + "\u00b0.\nThe wind speed is " + str(wind_speed) + " m/s.\n"
-              "The sunrise will be at " + sunrise_final + ".\nThe sunset will be at " + sunset_final)
-        restart("ending")
-    except KeyError:  # This error arises when a city name is spelled incorrectly.
-        restart("wrong_input")
-
-
-def multiplication():
-    print("INSTRUCTIONS")
-    max_num: int = input("Max Num: ")
-    if float(max_num).is_integer() and int(max_num) >= 1:  # This checks if the user input is a whole number
-        correct = 0
-        answered = 0
-        for current in range(0, int(max_num) + 1):
-            print("What is " + str(current) + " x " + str(max_num))
-            ans = input("Your Answer Here: ")
-            answered += 1
-            solution = int(current) * int(max_num)
-            if ans.lower() == "end":
-                percent_ended = (int(correct) / int(answered - 1)) * 100
-                print("Out of " + str(answered - 1) + " answered questions, you got " + str(correct)
-                      + " right answers. You scored " + str(percent_ended) + "%")
-                break
-            elif int(ans) == solution:
-                correct += 1
-            elif ans.isdigit():
-                print("Incorrect. The correct answer is: " + str(solution))
-            current += 1
-            if int(current) > int(max_num):
-                percent_completion = (int(correct) / int(answered)) * 100
-                print("Out of " + str(answered) + " questions, you got " + str(correct) + " right answers. You scored "
-                      + str(percent_completion) + " % ")
-                break
-    # DEFEND
-
-
-def translate():
-    print("Speak the text you want to translate below.")
-    translator = Translator(to_lang= "fr")
-    returned_output = input("Returning of This Output Can be Done in 2 Ways.\n"
-                            "1) In speech\n"
-                            "2) As text\n"
-                            "Your Choice: ")
-    if returned_output == "1":
-        say(translator.translate(speech()))
-        restart("ending")
-    elif returned_output == "2":
-        print(translator.translate(speech()))
-        restart("ending")
-    else:
-        restart("wrong_input")
-
-
 def message_recorder():
-    print("This is the message recording section. Please enter your file name below, wait for the prompt and enter your"
-          "desired information.")
+    print("This is the message recording section.\nINSTRUCTIONS- Please enter your file name below,"
+          " wait for the prompt and enter your desired information. Enter in an existing file name to add onto it.")
     filename = input("File Title: ")  # I am placing no defensive programming on this file name, as it is the user's
     # choice. I have no reason to limit their possible inputs, as this is their file title.
-    user_file = open(str(filename), "w")  # Using the open function to create a new file, for writing. This is due to
-    # the fact that the write command will make a new file, if there are no TXT files with the same name.
-    user_file.write(speech())  # The write function allows for the file to be written to. This is done through
-    # calling the speech() function.
-    restart("ending")  # Calling the restart function, due to the fact that this MR function has ended.
+    if os.path.isfile(filename):  # Using the OS function to sense if there is a duplicate file.
+        print("You have a file with this name.\nYou will be adding onto it from the end.")
+        continuing = input("(Y/N) Continue Adding to This File: ")
+        if continuing.upper() == "Y" or continuing.upper() == "YES":  # Sensing if the user wants to add on to the file
+            appended_file = open(str(filename), "a")  # If there is a duplicate file, it will be appended to using
+            # file I/O. This opening for appending moves the cursor to the end of the file.
+            appended_file.write(speech())  # Using the speech function to append to the file.
+            restart("ending")
+        else:
+            restart("wrong_input")  # Calling the restart, as the user has made an error by entering the same name, and
+            # not wanting to continue adding to the file.
+    else:
+        user_file = open(str(filename), "w")  # Using the open function to create a new file, for writing. This is due
+        # to the fact that the write command will make a new file, if there are no TXT files with the same name.
+        user_file.write(speech())  # The write function allows for the file to be written to. This is done through
+        # calling the speech() function.
+        restart("ending")  # Calling the restart function, due to the fact that this MR function has ended.
     '''
-    This allows users to title a file, and then add onto it using the speech() function.
-    '''
-
-
-def search():
-    wb.open_new_tab('https://www.google.com/search?q=%s' % speech())  # The % appends the string onto the search
-    '''
-    This search works due to the way that a google search URL is formatted. The start of every google search is the
-    same, and appending allows me to let the user search their desired query through google. Also, the speech function
-    is accessed here in order to have the user verbally input their search. 
+    This allows users to title a file, and then add onto it using the speech() function. As well, past files can be
+    accessed via appending through file I/O.
     '''
 
 
@@ -189,29 +117,145 @@ def question_picker(numbers, count):
 
 
 def spelling():
-    print("Welcome to the spelling bee.\nYou will be tested on 10 words.\nThese will be spoken to you.\n"
-          "Enter the answers into the  (Your Answers)  section.\nType(end)into the input to exit the bee.")
-    time.sleep(4)
-    print("Here is your first word.")
-    time.sleep(0.5)
-    words = open("Words.txt", "r")
-    solution = words.readlines()
-    indexes = question_picker(range(0, 14), 10)
-    words.seek(0)
-    questions = words.readlines()
-    score = 0
-    for index in indexes:
-        say(questions[index].strip())
-        answer = input(str("Your answer: ")).lower()
-        if solution[index].strip("\n") == answer:
-            print("Correct")
-            score += 1
-        elif answer.lower() == "end":
-            break
-        else:
-            print("Incorrect\nCorrect Answer: " + solution[index].strip("\n"))
-    print("Your score was " + str(score))
+    print("Welcome to the spelling bee.\nINSTRUCTIONS- You will be tested on 10 words. These will be spoken to you."
+          " Enter the answers into the  (Your Answers)  section. Type  (end)  into the input to exit the bee.")
+    # Notifying the user of the instructions.
+    starting = input("(Y/N)Are you ready to start: ")  # Allowing the user to start.
+    if starting.upper() == "Y" or starting.upper() == "YES":
+        words = open("Words.txt", "r")  # Opening up my words list file for reading, as it is not being edited.
+        indexes = question_picker(range(0, 14), 10)  # Picking a random order of the 10 words, out of a possible 15
+        # total words on the list.
+        words.seek(0)  # Going to the top of the document, to make sure that the lines specified below have not
+        # been passed over already.
+        questions = words.readlines()  # Reading the TXT file, in order to ask questions and verify solutions
+        score = 0  # Keeping track of user score.
+        for index in indexes:  # This for loop goes through the list of index values created via using the question_
+            # picker function.
+            say(questions[index].strip())  # Using the TTS function, the word is spoken to the user. The .strip()
+            # removes whitespace characters which would complicate asking questions and checking answers. The index
+            # value from the list is given by the for loop.
+            answer = input(str("Your answer: ")).lower()  # The user's input is given here. The .lower() prevents
+            # capitalization discrepancies. This is not in speech, as the user could just say the word that they heard
+            # (defeating the purpose of a spelling quiz)
+            if questions[index].strip() == answer:  # This checks the answers with the same format as they were asked,
+                # by taking away whitespace characters.
+                print("Correct")
+                score += 1  # Adding onto the score, which needs to be continually updated as the for loop reiterates.
+            elif answer.lower() == "end":  # If the user states end, it ends the loop. The .lower() accounts for
+                # capitalization discrepancies.
+                break  # This ends the loop, and the score is displayed followed by a trigger of the restart function.
+            else:  # This makes sure any answer that is not the correct one is marked as incorrect. This also defends
+                # the program, as it takes in all possible inputs.
+                print("Incorrect\nCorrect Answer: " + questions[index].strip())  # Notifying the user, and then
+                # printing the correct answer.
+        print("Your score was " + str(score))  # After the user is done, their score is printed. Although this is
+        # usually an integer as it is being added to. Therefore, the declaration of type is required for printing.
+        restart("ending")  # Calling the restart function, as the user has reached the end of the spelling bee.
+    else:
+        restart("wrong_input")
+    '''
+    The spelling bee section uses the TTS function to ask the user 10 words to spell. The user inputs these, and they 
+    are verified through reading a TXT file.
+    '''
+
+
+def search():
+    wb.open_new_tab('https://www.google.com/search?q=%s' % speech())  # The % appends the string onto the search
+    '''
+    This search works due to the way that a google search URL is formatted. The start of every google search is the
+    same, and appending allows me to let the user search their desired query through google. Also, the speech function
+    is accessed here in order to have the user verbally input their search. 
+    '''
+
+
+def date():
+    localtime = time.asctime(time.localtime(time.time()))  # Using the time function to find the date and local time.
+    print("Today's Date and Your Local Time:\n" + localtime)  # Printing the above variable.
+    try:  # Placed within a try to defend against incorrect city inputs.
+        print("Enter City Name: ")
+        city_name = speech()  # Calling upon the speech function for this input.
+        url = "https://api.openweathermap.org/data/2.5/weather?appid=9eae8652756b8c816d040731d8a607d7&q=" + city_name
+        json_data = requests.get(url).json()
+        forecast = json_data['weather'][0]['description']  # Accessing the first dictionary within the list(In the API)
+        low_temp = json_data['main']['temp_min']  # Accessing the main section of the JSON dictionary.
+        celsius_low = low_temp - 273.15  # This is the conversion from kelvin to celsius.
+        high_temp = json_data['main']['temp_max']
+        celsius_high = high_temp - 273.15
+        current_temp = json_data['main']['temp']
+        celsius_current = current_temp - 273.15
+        wind_speed = json_data['wind']['speed']
+        sunrise_time = json_data['sys']['sunrise']
+        sunset_time = json_data['sys']['sunset']
+        sunrise_final = time_converter(sunrise_time)  # Calling the function which converts UNIX time.
+        sunset_final = time_converter(sunset_time)
+        print("Today's Forecast:\n"
+              "The forecast is currently " + forecast + ".\n"
+              "The temperature is currently " + str(celsius_current) + "\u00b0.\n" 
+              "The high temperature is " + str(celsius_high) + "\u00b0.\n"
+              "The low temperature is " + str(celsius_low) + "\u00b0.\nThe wind speed is " + str(wind_speed) + " m/s.\n"
+              "The sunrise will be at " + sunrise_final + ".\nThe sunset will be at " + sunset_final)
+        # Compiling all of the data into a print statement.
+        restart("ending")  # Calling the restart function.
+    except KeyError:  # This error arises when a city name is spelled incorrectly, as the API will give this error.
+        restart("wrong_input")
+
+
+def multiplication():
+    print("Welcome to the multiplication table practice.\nINSTRUCTIONS- Select your maximum number that you want"
+          "to practice up to. You will be quizzed until this specified number. Answer  (end)  to stop the quiz."
+          "\nAnswer all questions by typing in numbers(9), rather than writing them in full(nine).")
+    max_num: int = input("Max Num: ")  # Asking the user to specify the largest number.
+    try:  # This defends the user not entering in a whole number, greater than 1.
+        if float(max_num).is_integer() and int(max_num) >= 1:  # This checks if the user input is a whole number
+            correct = 0  # Tallying correct answers.
+            answered = 0  # Tracking answered questions.
+            for current in range(0, int(max_num) + 1):  # Using a for loop to reiterate until the max number is reached.
+                print("What is " + str(current) + " x " + str(max_num))  # Asking the user the question.
+                ans = input("Your Answer Here: ")  # Taking in the user answer.
+                answered += 1  # Automatically, 1 is added to the answered questions within the for loop.
+                solution = int(current) * int(max_num)  # The answer is verified through the multiplication operation.
+                if ans.lower() == "end":  # This defends capitalization errors when the user enters "end".
+                    percent_ended = (int(correct) / int(answered - 1)) * 100  # The same percentage calculation is
+                    # made as below, but 1 is subtracted from the answered as the "end" question adds to the total.
+                    print("Out of " + str(answered - 1) + " answered questions, you got " + str(correct)
+                          + " right answers. You scored " + str(percent_ended) + "%")
+                    break  # Ending the loop, as the user has typed end.
+                if ans.isdigit():
+                    if int(ans) == solution:  # If the user is correct, 1 is added to their score.
+                        correct += 1
+                elif ans != solution:
+                    print("Incorrect. The correct answer is: " + str(solution))
+                current += 1  # Allowing for the for loop to continue moving, as the current question number is updated.
+                if int(current) > int(max_num):  # This prevents the program from asking a question that goes higher
+                    # than their input
+                    percent_completion = (int(correct) / int(answered)) * 100
+                    print("Out of " + str(answered) + " questions, you got " + str(correct) + " right answers. You "
+                          "scored " + str(percent_completion) + " % ")
+                    break
+        else:  # For some reason, this else errors out when trying to enter in a string for the max number.
+            restart("wrong_input")
+    except ValueError:  # This is the error received when entering in letters for the maximum number. This is used
+        # because it cannot be prevented by the else statement.
+        restart("wrong_input")
     restart("ending")
+
+
+def translate():
+    print("Input the text you want to translate to French below.")
+    translator = Translator(to_lang= "fr")  # Specifying the language to be translated as French.
+    returned_output = input("Returning of This Output Can be Done in 2 Ways.\n"
+                            "1) In speech\n"
+                            "2) As text\n"
+                            "Your Choice: ")
+    if returned_output == "1":
+        say(translator.translate(speech()))  # Triggering the say function to output what is input by the speech
+        # function. This is done through calling the Translator function.
+        restart("ending")
+    elif returned_output == "2":
+        print(translator.translate(speech()))  # This does the same thing, but returns the input as text.
+        restart("ending")
+    else:
+        restart("wrong_input")  # If the does not enter 1 or 2, the code will not error out.
 
 
 def restart(reason):
