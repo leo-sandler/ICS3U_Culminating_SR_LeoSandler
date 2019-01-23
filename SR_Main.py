@@ -1,28 +1,55 @@
-import speech_recognition as sr  # This import allows for the function to be used multiple times.
-import webbrowser as wb
-import time
-import random
-import pyttsx3
-from translate import Translator
-import requests
-import datetime
+import speech_recognition as sr  # Lets the program take in verbal input, and convert it to text.
+import webbrowser as wb  # Allows for me to open a new tab on the user's computer.
+import time  # Used for gathering current time, and allowing the user time to read with .sleep()
+import random  # Used for the random question selection within the spelling bee.
+import pyttsx3  # Allows for text-to-speech to be used within my code.
+from translate import Translator  # Used in the translate function.
+import requests  # Used in gathering JSON data from the OpenWeatherMap API.
+import datetime  # Used in converting unix time.
 
 
 def speech():
-    r = sr.Recognizer()
-    with sr.Microphone() as source:  # This enables the microphone to be used.
-        r.adjust_for_ambient_noise(source)
-        print("Speak Now: ")
-        audio = r.listen(source)  # Listening to the audio source and saving it under the variable source.
-        try:  # Used to verify that the audio is clear
-            dictation = r.recognize_google(audio)
-            return dictation
-        except sr.RequestError:  # This prevents the code from exiting out on an error.
-            print("Could not recognize that input, because of an error with the Google Speech API")
-
-# Option to enter an input via text, not dictation
-# Include countdown before speaking
-# Did you say?: Defensive programming for misinterpreted statements, and also including a text
+    speaking_text = input("(Y/N) Do you want to enter this input via speech: ")
+    if speaking_text.upper() == "Y" or speaking_text.upper() == "YES":  # An input which allows the user to pick
+        # between a dictated and typed input.
+        r = sr.Recognizer()  # Initializing the speech recognition function.
+        with sr.Microphone() as source:  # This enables the microphone to be used.
+            print("3")  # This countdown allows the user to prepare what they want to dictate.
+            time.sleep(1)
+            print("2")
+            time.sleep(1)
+            print("1")
+            time.sleep(1)
+            r.adjust_for_ambient_noise(source)  # This accounts for ambient noise within the dictation.
+            print("Speak Now: ")
+            audio = r.listen(source)  # Listening to the audio source and saving it under the variable source.
+            try:  # Used to verify that the audio is clear
+                dictation = r.recognize_google(audio)  # Using the Google speech API to interpret the verbal input.
+                did_you_say = input("Did You Say:\n" + str(dictation) + "\n(Y/N): ")
+                if did_you_say.upper() == "Y" or did_you_say.upper() == "YES":
+                    return dictation  # This ends the function, as the returned input is transferred to where
+                    # the function is called.
+                elif did_you_say.upper() == "N" or did_you_say.upper() == "NO":
+                    return speech()  # This allows for the user to go through the code again, and for their input
+                    # to be returned when this function is called.
+                else:
+                    restart("wrong_input")  # Preventing an incorrect input to error the code.
+            except sr.RequestError or sr.UnknownValueError:  # This prevents the code from exiting out on an error.
+                print("Could not recognize that input, because of an error with the Google Speech API")
+                restart("ending")  # Calling the restart function, as this function is complete.
+    elif speaking_text.upper() == "N" or speaking_text.upper() == "NO":  # The .upper() accounts for capitalization.
+        typed_input = input("Type Here: ")  # There is no reason for me to defend this, as the user has freedom to type
+        # anything.
+        return typed_input  # This return acts in the same way as the dictation
+    else:  # This defends against the possibility of a typo within the code.
+        restart("wrong_input")  # Calling the restart function. The parameter allows the user to be notified of their
+        # incorrect input.
+    '''
+    This speech recognition is the core of my project. It is called within multiple other functions in the place of
+    using inputs. However, sometimes it does not fit(like in the spelling bee) and it is not used. The try and except
+    prevents an error caused on Google's end. As well, the if/elif/returning allows for the user to make sure that they
+    have entered the correct statement.
+    '''
 
 
 def say(statement):
@@ -32,8 +59,8 @@ def say(statement):
     engine.say(statement)  # This uses the parameter within the function to say what is requested.
     engine.runAndWait()  # This engages the engine, allowing it to speak.
     '''
-    This function allows for me to only need one line to initialize and run TTS witin my code. As well, a parameter is used
-    in order for the engine to interpret what is entered.
+    This function allows for me to only need one line to initialize and run TTS witin my code. As well, a parameter is 
+    used in order for the engine to interpret what is entered. The speech rate is lowered from the default
     '''
 
 
@@ -41,14 +68,20 @@ def time_converter(time_entered):
     converted_time = datetime.datetime.fromtimestamp(
         int(time_entered)
     ).strftime('%I:%M %p')
-    return converted_time
+    return converted_time  # When printed, the time will show, instead of showing right after the conversion.
+    '''
+    I am not completely sure of how this function works. Although I understand that it takes data(the time entered) and
+    converts it from UNIX time into real time. This is used within the date and weather section, as the sunrise and
+    sunset times are in UNIX.
+    '''
 
 
 def date():
-    localtime = time.asctime(time.localtime(time.time()))
-    print("Today's Date and Your Local Time:\n" + localtime)
-    try:
-        city_name = input("Enter city name: ")
+    localtime = time.asctime(time.localtime(time.time()))  # Using the time function to find the date and local time.
+    print("Today's Date and Your Local Time:\n" + localtime)  # Printing the above variable.
+    try:  # Placed within a try to defend against incorrect city inputs.
+        print("Enter City Name: ")
+        city_name = speech()  # Calling upon the speech function for this input.
         url = "https://api.openweathermap.org/data/2.5/weather?appid=9eae8652756b8c816d040731d8a607d7&q=" + city_name
         json_data = requests.get(url).json()
         forecast = json_data['weather'][0]['description']  # Accessing the first dictionary within the list(In the API)
@@ -69,9 +102,9 @@ def date():
               "The high temperature is " + str(celsius_high) + "\u00b0.\n"
               "The low temperature is " + str(celsius_low) + "\u00b0.\nThe wind speed is " + str(wind_speed) + " m/s.\n"
               "The sunrise will be at " + sunrise_final + ".\nThe sunset will be at " + sunset_final)
-
+        restart("ending")
     except KeyError:  # This error arises when a city name is spelled incorrectly.
-        print("DEFEND THIS")
+        restart("wrong_input")
 
 
 def multiplication():
@@ -89,7 +122,6 @@ def multiplication():
                 percent_ended = (int(correct) / int(answered - 1)) * 100
                 print("Out of " + str(answered - 1) + " answered questions, you got " + str(correct)
                       + " right answers. You scored " + str(percent_ended) + "%")
-
                 break
             elif int(ans) == solution:
                 correct += 1
@@ -97,36 +129,28 @@ def multiplication():
                 print("Incorrect. The correct answer is: " + str(solution))
             current += 1
             if int(current) > int(max_num):
-                print("Out of " + str(answered) + " questions, you got " + str(correct) + " right answers.")
-                # CALCULATE PERCENTAGE
+                percent_completion = (int(correct) / int(answered)) * 100
+                print("Out of " + str(answered) + " questions, you got " + str(correct) + " right answers. You scored "
+                      + str(percent_completion) + " % ")
                 break
+    # DEFEND
 
 
 def translate():
     print("Speak the text you want to translate below.")
-    lang_select = input("1) English to Spanish\n"
-                        "2) English to Portuguese\n"
-                        "3) English to French\n"
-                        "Your Input: ")
-    if lang_select == "1":
-        lang = "es"
-    elif lang_select == "2":
-        lang = "pt"
-    elif lang_select == "3":
-        lang = "fr"
-    else:
-        restart("wrong_input")
-    translator = Translator(to_lang= lang)
+    translator = Translator(to_lang= "fr")
     returned_output = input("Returning of This Output Can be Done in 2 Ways.\n"
                             "1) In speech\n"
-                            "2) As text")
+                            "2) As text\n"
+                            "Your Choice: ")
     if returned_output == "1":
         say(translator.translate(speech()))
+        restart("ending")
     elif returned_output == "2":
         print(translator.translate(speech()))
+        restart("ending")
     else:
         restart("wrong_input")
-    restart("ending")
 
 
 def message_recorder():
@@ -195,8 +219,8 @@ def restart(reason):
         print("You have finished using this section.")
     elif reason == "wrong_input":
         print("You entered in the wrong input.")
-    restart_q = input("(Y/N) Do you want to start again? ").lower()
-    if restart_q.upper() == "Y" or "YES":
+    restart_q = input("(Y/N) Do you want to start again: ").lower()
+    if restart_q.upper() == "Y" or restart_q.upper() == "YES":
         menu()
     else:
         print("Thanks for using Leo's Speech Recognition Application.")
@@ -204,13 +228,13 @@ def restart(reason):
 
 
 def menu():
-    print("Hello.\nWelcome to Leo's Speech Recognition Application.")
-    print("Options:\n"
+    print("Welcome to Leo's Speech Recognition Application.\nOptions:\n"
           "1) Message Recorder\n"
           "2) Spelling Bee\n"
           "3) Google Search\n"
           "4) Time of Day and Weather\n"
           "5) Multiplication Practice\n"
+          "6) English to French Translation\n"
           "Please Make Your Choice: ")
     time.sleep(0.5)
     selection = (speech())
@@ -234,6 +258,10 @@ def menu():
         time.sleep(0.5)
         print("Launching Multiplication Practice")
         multiplication()
+    elif selection == "6":
+        time.sleep(0.5)
+        print("Launching English to French Translation")
+        translate()
 
 
-spelling()
+translate()
