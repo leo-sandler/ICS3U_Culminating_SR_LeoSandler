@@ -1,0 +1,21 @@
+'''
+def date():
+    print("Enter Your Location: ")
+    user_location = input(str("Here: "))
+    # localtime = time.asctime(time.localtime(time.time()))
+    # print("Today's Date and Your Local Time: " + localtime)
+    weather = Weather(unit=Unit.CELSIUS)
+    location = weather.lookup_by_location(user_location)
+    forecasts = location.forecast
+    print("Note: All temperatures are in Celsius")
+    for forecast in forecasts:
+        print("On " + forecast.date + ", in " + user_location + " the forecast calls for " + forecast.text +
+              ". The high will be " + forecast.high + "\u00b0. The low will be " + forecast.low + "\u00b0.")
+'''
+# At this point, the code is commented out because the API is currently retired. I am in the process of trying to obtain
+# a license.
+
+Possibly was going to be used in voice changing
+    if language == "english":
+        lang_spoken = "C:\Windows\WinSxS\amd64_microsoft-windows-t..peech-en-us-onecore_31bf3856ad364e35_10.0.17134.1_none_e17d7e40f2074379\tokens_TTS_en-US.xml"
+    engine.setProperty('voice', lang_spoken)
