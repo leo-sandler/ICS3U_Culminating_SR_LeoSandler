@@ -310,7 +310,7 @@ def menu():
     time.sleep(0.5)
     selection = (speech())  # Calling upon the speech() function for the user's input.
     if selection == "1":  # Each selection launches the corresponding application section.
-        time.sleep(0.5)
+        time.sleep(0.5)  # Time.sleep() allows for me to allow the user time to read and adjust to what they are doing.
         print("Launching Message Recorder")
         message_recorder()
     elif selection == "2":
