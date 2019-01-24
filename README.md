@@ -2,7 +2,7 @@
 
 ### Requirements
 #### Python 3.6.5 must be the interpreter used.
-Note: Python 3.7 will not be able to run this code, as PyAudio is not updated for it.
+- Note: Python 3.7 will not be able to run this code, as PyAudio is not updated for it.
 #### Internet connection is required to run this code.
 - Note: Multiple APIs like the Google Speech or OpenWeatherMap use Wi-Fi in order to run.
 #### Required Pip Installs:
