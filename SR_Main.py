@@ -35,7 +35,7 @@ def speech():
                     # to be returned when this function is called.
                 else:
                     restart("wrong_input")  # Preventing an incorrect input to error the code.
-            except sr.RequestError or sr.UnknownValueError:  # This prevents the code from exiting out on an error.
+            except:  # This prevents the code from exiting out on an error.
                 print("Could not recognize that input, because of an error with the Google Speech API")
                 restart("ending")  # Calling the restart function, as this function is complete.
     elif speaking_text.upper() == "N" or speaking_text.upper() == "NO":  # The .upper() accounts for capitalization.
@@ -167,6 +167,7 @@ def spelling():
 def search():
     print("Welcome to the Google Search section.\nInput your query in verbal or text format.")
     wb.open_new_tab('https://www.google.com/search?q=%s' % speech())  # The % appends the string onto the search
+    restart("ending")
     '''
     This search works due to the way that a google search URL is formatted. The start of every google search is the
     same, and appending allows me to let the user search their desired query through google. Also, the speech function
