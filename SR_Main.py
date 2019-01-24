@@ -24,7 +24,7 @@ def speech():
             r.adjust_for_ambient_noise(source)  # This accounts for ambient noise within the dictation.
             print("Speak Now: ")
             audio = r.listen(source)  # Listening to the audio source and saving it under the variable source.
-            try:  # Used to verify that the audio is clear
+            try:  # Used to verify that the audio is clear and that the API is working.
                 dictation = r.recognize_google(audio)  # Using the Google speech API to interpret the verbal input.
                 did_you_say = input("Did You Say:\n" + str(dictation) + "\n(Y/N): ")
                 if did_you_say.upper() == "Y" or did_you_say.upper() == "YES":
@@ -54,14 +54,15 @@ def speech():
 
 
 def say(statement):
-    engine = pyttsx3.init()  # Initializing, or engaging the pyttsx3 package.
+    engine = pyttsx3.init()  # Initializing the pyttsx3 package.
     rate = engine.getProperty('rate')  # This is accessing the property of speaking rate.
     engine.setProperty('rate', rate - 90)  # This drops the default speaking rate by 90 WPM, as the default was 200.
     engine.say(statement)  # This uses the parameter within the function to say what is requested.
     engine.runAndWait()  # This engages the engine, allowing it to speak.
     '''
     This function allows for me to only need one line to initialize and run TTS witin my code. As well, a parameter is 
-    used in order for the engine to interpret what is entered. The speech rate is lowered from the default
+    used in order for the engine to interpret what is entered. The speech rate is lowered from the default in order for
+    more clarity, as the default is very fast.
     '''
 
 
@@ -78,7 +79,7 @@ def time_converter(time_entered):
 
 
 def message_recorder():
-    print("This is the message recording section.\nINSTRUCTIONS- Please enter your file name below,"
+    print("Welcome to the Message Recording section.\nINSTRUCTIONS- Please enter your file name below,"
           " wait for the prompt and enter your desired information. Enter in an existing file name to add onto it.")
     filename = input("File Title: ")  # I am placing no defensive programming on this file name, as it is the user's
     # choice. I have no reason to limit their possible inputs, as this is their file title.
@@ -117,8 +118,8 @@ def question_picker(numbers, count):
 
 
 def spelling():
-    print("Welcome to the spelling bee.\nINSTRUCTIONS- You will be tested on 10 words. These will be spoken to you."
-          " Enter the answers into the  (Your Answers)  section. Type  (end)  into the input to exit the bee.")
+    print("Welcome to the Spelling Bee.\nINSTRUCTIONS- You will be tested on 10 words. These will be spoken to you."
+          " Enter the answers into the 'Your Answers' section. Type 'end' into the input to exit the bee.")
     # Notifying the user of the instructions.
     starting = input("(Y/N)Are you ready to start: ")  # Allowing the user to start.
     if starting.upper() == "Y" or starting.upper() == "YES":
@@ -129,6 +130,7 @@ def spelling():
         # been passed over already.
         questions = words.readlines()  # Reading the TXT file, in order to ask questions and verify solutions
         score = 0  # Keeping track of user score.
+        answered = 0
         for index in indexes:  # This for loop goes through the list of index values created via using the question_
             # picker function.
             say(questions[index].strip())  # Using the TTS function, the word is spoken to the user. The .strip()
@@ -137,19 +139,22 @@ def spelling():
             answer = input(str("Your answer: ")).lower()  # The user's input is given here. The .lower() prevents
             # capitalization discrepancies. This is not in speech, as the user could just say the word that they heard
             # (defeating the purpose of a spelling quiz)
+            answered += 1
             if questions[index].strip() == answer:  # This checks the answers with the same format as they were asked,
                 # by taking away whitespace characters.
                 print("Correct")
                 score += 1  # Adding onto the score, which needs to be continually updated as the for loop reiterates.
             elif answer.lower() == "end":  # If the user states end, it ends the loop. The .lower() accounts for
                 # capitalization discrepancies.
+                percent_ended = (int(score) / int(answered - 1)) * 100
+                print("Your score was " + str(percent_ended) + "%")
                 break  # This ends the loop, and the score is displayed followed by a trigger of the restart function.
             else:  # This makes sure any answer that is not the correct one is marked as incorrect. This also defends
                 # the program, as it takes in all possible inputs.
                 print("Incorrect\nCorrect Answer: " + questions[index].strip())  # Notifying the user, and then
                 # printing the correct answer.
-        print("Your score was " + str(score))  # After the user is done, their score is printed. Although this is
-        # usually an integer as it is being added to. Therefore, the declaration of type is required for printing.
+        percent_final = (int(score) / int(10)) * 100
+        print("Your score was " + str(percent_final) + "%")  # After the user is done, their % is printed.
         restart("ending")  # Calling the restart function, as the user has reached the end of the spelling bee.
     else:
         restart("wrong_input")
@@ -160,6 +165,7 @@ def spelling():
 
 
 def search():
+    print("Welcome to the Google Search section.\nInput your query in verbal or text format.")
     wb.open_new_tab('https://www.google.com/search?q=%s' % speech())  # The % appends the string onto the search
     '''
     This search works due to the way that a google search URL is formatted. The start of every google search is the
@@ -169,8 +175,7 @@ def search():
 
 
 def date():
-    localtime = time.asctime(time.localtime(time.time()))  # Using the time function to find the date and local time.
-    print("Today's Date and Your Local Time:\n" + localtime)  # Printing the above variable.
+    print("Welcome to the Date and Weather section.")
     try:  # Placed within a try to defend against incorrect city inputs.
         print("Enter City Name: ")
         city_name = speech()  # Calling upon the speech function for this input.
@@ -188,7 +193,12 @@ def date():
         sunset_time = json_data['sys']['sunset']
         sunrise_final = time_converter(sunrise_time)  # Calling the function which converts UNIX time.
         sunset_final = time_converter(sunset_time)
-        print("Today's Forecast:\n"
+        time_collected = json_data['dt']
+        final_time_collected = time_converter(time_collected)
+        localtime = time.asctime(time.localtime(time.time()))  # Using the time function to collect local time,
+        print("Today's Date and Your Local Time:\n" + localtime)
+        print("Today's Weather Data: " + city_name.title() + "\n"
+              "The data was collected at " + final_time_collected + "\n"
               "The forecast is currently " + forecast + ".\n"
               "The temperature is currently " + str(celsius_current) + "\u00b0.\n" 
               "The high temperature is " + str(celsius_high) + "\u00b0.\n"
@@ -201,8 +211,8 @@ def date():
 
 
 def multiplication():
-    print("Welcome to the multiplication table practice.\nINSTRUCTIONS- Select your maximum number that you want"
-          "to practice up to. You will be quizzed until this specified number. Answer  (end)  to stop the quiz."
+    print("Welcome to Multiplication Table Practice.\nINSTRUCTIONS- Select your maximum number that you want"
+          "to practice up to. You will be quizzed until this specified number. Answer 'end' to stop the quiz."
           "\nAnswer all questions by typing in numbers(9), rather than writing them in full(nine).")
     max_num: int = input("Max Num: ")  # Asking the user to specify the largest number.
     try:  # This defends the user not entering in a whole number, greater than 1.
@@ -238,11 +248,16 @@ def multiplication():
         # because it cannot be prevented by the else statement.
         restart("wrong_input")
     restart("ending")
+    '''
+    This multiplication table function uses try, except, if, elif, and else statements to verify correct inputs within
+    this function. The function reiterates due to the presence of a for loop, which can be broken by the user if they 
+    decide to end their time within this section.
+    '''
 
 
 def translate():
     print("Input the text you want to translate to French below.")
-    translator = Translator(to_lang= "fr")  # Specifying the language to be translated as French.
+    translator = Translator(to_lang="fr")  # Specifying the language to be translated as French.
     returned_output = input("Returning of This Output Can be Done in 2 Ways.\n"
                             "1) In speech\n"
                             "2) As text\n"
@@ -256,23 +271,35 @@ def translate():
         restart("ending")
     else:
         restart("wrong_input")  # If the does not enter 1 or 2, the code will not error out.
+    '''
+    The translation function is mostly ran through the translator module. Using this module allows me to return data
+    which is collected by calling upon the speech() function.
+    '''
 
 
 def restart(reason):
-    if reason == "ending":
+    if reason == "ending":  # This is the parameter, which is filled out at the spot where the function is called.
+        # I feel like the user should be notified why the code restarts: whether they have completed a section, or
+        # made an invalid input.
         print("You have finished using this section.")
     elif reason == "wrong_input":
-        print("You entered in the wrong input.")
-    restart_q = input("(Y/N) Do you want to start again: ").lower()
-    if restart_q.upper() == "Y" or restart_q.upper() == "YES":
-        menu()
-    else:
+        print("You entered an incorrect input.")
+    restart_q = input("(Y/N) Do you want to start again: ").upper()  # The .lower() prevents capitalization errors
+    if restart_q == "Y" or restart_q == "YES":
+        menu()  # This triggers the menu, essentialy restarting the entire app.
+    else:  # This catches all other possible answers, and ends the code.
         print("Thanks for using Leo's Speech Recognition Application.")
+        time.sleep(0.5)
         exit()
+    '''
+    The restart function is something that is extremely valuable to my code. Since it is used over 15 times, it 
+    condenses the total lines used within the application. As well, it allows for my code to have defensive programming.
+    Therefore, the application should only end/error out on decisions made by the user.
+    '''
 
 
 def menu():
-    print("Welcome to Leo's Speech Recognition Application.\nOptions:\n"
+    print("Welcome to Leo's Speech Recognition Application.\nOptions:\nPick one of these numbers.\n"
           "1) Message Recorder\n"
           "2) Spelling Bee\n"
           "3) Google Search\n"
@@ -281,8 +308,8 @@ def menu():
           "6) English to French Translation\n"
           "Please Make Your Choice: ")
     time.sleep(0.5)
-    selection = (speech())
-    if selection == "1":
+    selection = (speech())  # Calling upon the speech() function for the user's input.
+    if selection == "1":  # Each selection launches the corresponding application section.
         time.sleep(0.5)
         print("Launching Message Recorder")
         message_recorder()
@@ -306,6 +333,13 @@ def menu():
         time.sleep(0.5)
         print("Launching English to French Translation")
         translate()
+    else:  # This prevents the code from having errors, due to an incorrect choice.
+        restart("wrong_input")
+    '''
+    The menu function uses if, elif, and else statements in filtering through user selection responses. This is vital
+    to the start of the code, as the menu alerts the user of all options. As well, its use within the restart function
+    allows for the user to restart the code, essentially from the start.
+    '''
 
 
-translate()
+menu()  # Starting the code, by calling the menu function
